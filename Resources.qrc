@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/imgs">
+        <file>upButton.png</file>
+        <file>downButton.png</file>
+        <file>checkMark.png</file>
+        <file>powerbutton2.png</file>
+        <file>TwentyMinsPieChart.png</file>
+        <file>FortyFivePieChart.png</file>
+        <file>UserDesignatedSession.png</file>
+    </qresource>
+</RCC>
