@@ -16,11 +16,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    dbmanager.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    recording.cpp \
+    session.cpp
 
 HEADERS += \
-    mainwindow.h
+    dbmanager.h \
+    mainwindow.h \
+    recording.h \
+    session.h
 
 FORMS += \
     mainwindow.ui
