@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     dbmanager.cpp \
+    group.cpp \
     main.cpp \
     mainwindow.cpp \
     recording.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
     dbmanager.h \
+    group.h \
     mainwindow.h \
     recording.h \
     session.h
