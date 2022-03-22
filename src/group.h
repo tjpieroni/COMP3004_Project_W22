@@ -4,16 +4,19 @@
 #include "session.h"
 #include <QString>
 #include <QVector>
+#include <QPushButton>
 
 class Group
 {
 public:
-    Group();
-
+    Group(QPushButton*, QString);
+    QPushButton* getBtnWidget();
+    QString getName();
 private:
     int duration;
     QString groupName;
-    QVector<*session> sessions;
+    //added this to be able to change the stylesheet
+    QPushButton* btn;
 };
 
 #endif // GROUP_H

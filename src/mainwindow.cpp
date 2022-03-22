@@ -1,17 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QPixmap>
+#include <QDebug>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    init();
 
+    //set up icon display (might be able to just do this on the ui)
     ui->TwentySession->setEnabled(false);
+    ui->TwentySession->setStyleSheet("QPushButton {border: none}");
     ui->FortyFiveSession->setEnabled(false);
+    ui->FortyFiveSession->setStyleSheet("QPushButton {border: none}");
     ui->UserDesignatedSession->setEnabled(false);
+    ui->UserDesignatedSession->setStyleSheet("QPushButton {border: none}");
 
-    ui->TwentySession->setStyleSheet("QPushButton {border: 3px solid red}");
+    ui->SessionType1->setEnabled(false);
+    ui->SessionType1->setStyleSheet("QPushButton {border: none}");
+    ui->SessionType2->setEnabled(false);
+    ui->SessionType2->setStyleSheet("QPushButton {border: none}");
+    ui->SessionType3->setEnabled(false);
+    ui->SessionType3->setStyleSheet("QPushButton {border: none}");
+    ui->SessionType4->setEnabled(false);
+    ui->SessionType4->setStyleSheet("QPushButton {border: none}");
 
     //device starts powered off and not in a session.
     powerStatus = false;
@@ -44,6 +57,28 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow(){
     delete ui;
+}
+
+void MainWindow::init() {
+    Group* twentyGrp = new Group(ui->TwentySession, "Twenty");
+    Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "Forty-Five");
+    Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "User-designated");
+
+    //can change the name of these variables when we decide on the sessions we'll do
+    session* one = new session(ui->SessionType1, "Session Type 1");
+    session* two = new session(ui->SessionType2, "Session Type 2");
+    session* three = new session(ui->SessionType3,  "Session Type 3");
+    session* four = new session(ui->SessionType4,  "Session Type 4");
+
+    groupList.append(twentyGrp);
+    groupList.append(fortyFiveGrp);
+    groupList.append(userDesignatedGrp);
+
+    sessionList.append(one);
+    sessionList.append(two);
+    sessionList.append(three);
+    sessionList.append(four);
+
 }
 
 void MainWindow::startPowerTimer(){
@@ -98,14 +133,51 @@ void MainWindow::endSession(){
     }
 }
 
+
+/*
+    Function: selectGroup()
+    Purpose: Select a group
+    How it works:
+        if nothing is currently selected, it will set the currSelected variable to 0 and change the border
+        if something is selected
+            increment the current selected value
+            if it goes out of bounds, set it to 0
+            set the border colour
+ *
+*/
 void MainWindow::selectGroup(){
     qInfo("Recieved SELECT GROUP signal");
+    if (currSelectedGrp == -1) {
+        currSelectedGrp = 0;
+        groupList.at(0)->getBtnWidget()->setStyleSheet("QPushButton {border: 3px solid red}");
+        qInfo() << "Current selected group: " << groupList.at(currSelectedGrp)->getName();
+
+    } else {
+        groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: none}");
+        currSelectedGrp++;
+        if (currSelectedGrp >= groupList.size()) {
+            currSelectedGrp = 0;
+        }
+        groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: 3px solid red}");
+        qInfo() << "Current selected group: " << groupList.at(currSelectedGrp)->getName();
+
+    }
+
 }
 
 void MainWindow::selectUpSession(){
     if(upIntensityTimer->isActive() && !therapyInProgress){
         upIntensityTimer->stop();
         qInfo("Recieved SELECT UP SESSION signal");
+        if (currSelectedSess == -1) {
+            currSelectedSess = 0;
+            sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        } else if (currSelectedSess < sessionList.size()-1) {
+            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+            currSelectedSess++;
+            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        }
+
     }
 }
 
@@ -113,13 +185,29 @@ void MainWindow::selectDownSession(){
     if(downIntensityTimer->isActive() && !therapyInProgress){
         downIntensityTimer->stop();
         qInfo("Recieved SELECT DOWN SESSION signal");
+        if (currSelectedSess == -1) {
+            currSelectedSess = 0;
+            sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        } else if (currSelectedSess > 0) {
+            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+            currSelectedSess--;
+            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        }
     }
 }
 
 void MainWindow::confirmTreatment(){
     qInfo("Recieved CONFIRM TREATMENT signal");
-    therapyInProgress = true;
-    ui->checkBtn->blockSignals(true);
+    if (currSelectedGrp > -1 && currSelectedSess > -1) {
+        therapyInProgress = true;
+        ui->checkBtn->blockSignals(true);
+        qInfo() << "Confirmed Group: " << groupList.at(currSelectedGrp)->getName();
+        qInfo() << "Confirmed Session: " << sessionList.at(currSelectedSess)->getName();
+        //should probably reset style here
+    } else {
+        qInfo("You must select both a Group and Session in order to confirm treatment");
+    }
+
 }
 
 void MainWindow::startdownIntensityTimer(){
