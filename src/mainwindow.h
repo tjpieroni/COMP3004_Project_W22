@@ -4,8 +4,14 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QPushButton>
-#include <group.h>
-#include <session.h>
+#include <QPixmap>
+#include <QDebug>
+
+#include "group.h"
+#include "session.h"
+#include "dbmanager.h"
+#include "recording.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -28,9 +34,12 @@ private:
     QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer;
     QVector<Group*> groupList;
     QVector<session*> sessionList;
+    QVector<recording*> recordingList;
+    dbManager *Database;
     bool powerStatus,therapyInProgress,shuttingDown;
     int currSelectedGrp = -1;
     int currSelectedSess = -1;
+    int currentIntensity = 1;
 
 private slots:
     void startPowerTimer();
@@ -39,6 +48,7 @@ private slots:
     void endSession();
     void selectGroup();
     void confirmTreatment();
+    void saveTreatment();
 
     void selectUpSession();
     void selectDownSession();

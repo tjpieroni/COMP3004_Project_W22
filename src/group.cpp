@@ -6,10 +6,8 @@ Group::Group(QPushButton *btnParam, QString nameParam)
     this->groupName = nameParam;
 }
 
-QPushButton* Group::getBtnWidget() {
-    return this->btn;
-}
+QPushButton* Group::getBtnWidget() {return this->btn;}
 
-QString Group::getName() {
-    return this->groupName;
-}
+QString Group::getName() {return this->groupName;}
+
+int Group::getDuration(){return this->duration;}
