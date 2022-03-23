@@ -218,6 +218,7 @@ void MainWindow::confirmTreatment(){
 void MainWindow::saveTreatment(){
     qInfo("Recieved SAVE TREATMENT signal");
     recording *newRecording = new recording(recordingList.size(),currentIntensity,groupList.at(currSelectedGrp)->getDuration(),sessionList.at(currSelectedSess)->getName());
+    recordingList.push_back(newRecording);
     if(Database->insertRecording(newRecording)){
         qInfo("Treatment saved");
     }

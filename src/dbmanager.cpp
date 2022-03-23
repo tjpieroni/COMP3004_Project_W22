@@ -4,7 +4,7 @@ const QString dbManager::DB_PATH = "/database/oasis.db";
 
 dbManager::dbManager()
 {
-    oasisDB = QSqlDatabase::addDatabase("SQLITE");
+    oasisDB = QSqlDatabase::addDatabase("QSQLITE");
     oasisDB.setDatabaseName("oasis.db");
 
     if (!oasisDB.open()) {
