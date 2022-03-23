@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QPixmap>
-#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -48,11 +47,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->downBtn, SIGNAL(pressed()), this,SLOT(startdownIntensityTimer()));
     connect(ui->downBtn,SIGNAL(released()),this,SLOT(selectDownSession()));
     connect(ui->checkBtn, SIGNAL(clicked()), this, SLOT(confirmTreatment()));
+    connect(ui->saveBtn, SIGNAL(clicked()), this, SLOT(saveTreatment()));
 
     //block all buttons except the power button
     ui->checkBtn->blockSignals(true);
     ui->downBtn->blockSignals(true);
     ui->upBtn->blockSignals(true);
+    ui->saveBtn->blockSignals(true);
 }
 
 MainWindow::~MainWindow(){
@@ -60,6 +61,7 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::init() {
+    Database = new dbManager();
     Group* twentyGrp = new Group(ui->TwentySession, "Twenty");
     Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "Forty-Five");
     Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "User-designated");
@@ -79,6 +81,7 @@ void MainWindow::init() {
     sessionList.append(three);
     sessionList.append(four);
 
+    recordingList = Database->retrieveRecordings();
 }
 
 void MainWindow::startPowerTimer(){
@@ -129,6 +132,7 @@ void MainWindow::endSession(){
         powerButtonTimer->stop();
         qInfo("Recieved END SESSION signal");
         ui->checkBtn->blockSignals(false);
+        ui->saveBtn->blockSignals(true);
         therapyInProgress = false;
     }
 }
@@ -201,6 +205,7 @@ void MainWindow::confirmTreatment(){
     if (currSelectedGrp > -1 && currSelectedSess > -1) {
         therapyInProgress = true;
         ui->checkBtn->blockSignals(true);
+        ui->saveBtn->blockSignals(false);
         qInfo() << "Confirmed Group: " << groupList.at(currSelectedGrp)->getName();
         qInfo() << "Confirmed Session: " << sessionList.at(currSelectedSess)->getName();
         //should probably reset style here
@@ -208,6 +213,17 @@ void MainWindow::confirmTreatment(){
         qInfo("You must select both a Group and Session in order to confirm treatment");
     }
 
+}
+
+void MainWindow::saveTreatment(){
+    qInfo("Recieved SAVE TREATMENT signal");
+    recording *newRecording = new recording(recordingList.size(),currentIntensity,groupList.at(currSelectedGrp)->getDuration(),sessionList.at(currSelectedSess)->getName());
+    if(Database->insertRecording(newRecording)){
+        qInfo("Treatment saved");
+    }
+    else{
+        qInfo("Treatment could not be saved");
+    }
 }
 
 void MainWindow::startdownIntensityTimer(){

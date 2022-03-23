@@ -12,6 +12,8 @@ public:
     Group(QPushButton*, QString);
     QPushButton* getBtnWidget();
     QString getName();
+    int getDuration();
+
 private:
     int duration;
     QString groupName;

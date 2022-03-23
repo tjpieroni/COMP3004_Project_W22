@@ -6,10 +6,15 @@
 class recording
 {
 public:
-    recording();
+    recording(int, int, int, QString);
+
+    int getID();
+    int getIntensity();
+    int getDuration();
+    QString getType();
 
 private:
-    int intensityLevel, duration;
+    int recordingID, intensityLevel, duration;
     QString sessionType;
 };
 
