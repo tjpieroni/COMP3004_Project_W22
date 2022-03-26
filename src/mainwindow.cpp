@@ -62,9 +62,9 @@ MainWindow::~MainWindow(){
 
 void MainWindow::init() {
     Database = new dbManager();
-    Group* twentyGrp = new Group(ui->TwentySession, "Twenty");
-    Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "Forty-Five");
-    Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "User-designated");
+    Group* twentyGrp = new Group(ui->TwentySession, "20");
+    Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "45");
+    Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "UD");
 
     //can change the name of these variables when we decide on the sessions we'll do
     session* one = new session(ui->SessionType1, "Session Type 1");
@@ -207,7 +207,22 @@ void MainWindow::confirmTreatment(){
         ui->checkBtn->blockSignals(true);
         ui->saveBtn->blockSignals(false);
         qInfo() << "Confirmed Group: " << groupList.at(currSelectedGrp)->getName();
+        confirmedGrp = groupList.at(currSelectedGrp)->getName();
         qInfo() << "Confirmed Session: " << sessionList.at(currSelectedSess)->getName();
+
+        if (groupList.at(currSelectedGrp)->getName() == "20") {
+            //twenty session
+            qInfo("Twenty session starting...");
+            beginSession();
+        } else if (groupList.at(currSelectedGrp)->getName() == "45") {
+            qInfo("Forty-Five session starting...");
+            beginSession();
+        } else if (groupList.at(currSelectedGrp)->getName() == "UD") {
+            qInfo("User-designated group starting...");
+            beginSession();
+        } else {
+            qInfo("Incalid group");
+        }
         //should probably reset style here
     } else {
         qInfo("You must select both a Group and Session in order to confirm treatment");
@@ -245,3 +260,61 @@ void MainWindow::decreaseIntensity(){
     qInfo("Recieved DECREASE INTENSITY signal");
 }
 
+/*
+ *Function: beginSession
+ * Input: initialize the session timer  and call initTimer with it
+ *
+*/
+void MainWindow::beginSession() {
+    qInfo("Beginning session!");
+    sessionTimer = new QTimer(this);
+    initTimer(sessionTimer);
+}
+/*Function: initTimer
+ * Input: QTimer object pointer
+ * Purpose: initialize the session count to 0, connect the timer to the updateTimer function and make it run every second
+ *
+ *
+*/
+void MainWindow::initTimer(QTimer *timer) {
+    currTimerCount = 0;
+    connect(timer, &QTimer::timeout, this, &MainWindow::updateTimer);
+    timer->start(1000);
+}
+
+/*
+ * Function: updateTimer
+ * Input: none
+ * Purpose: update the timer count every second (increment by 1) with the help of its sessionTimer's initialization in initTimer.
+ *          Cancel the timer when it reaches the confirmed group's corresponding time.
+ *
+*/
+void MainWindow::updateTimer() {
+    currTimerCount++;
+    qInfo() << "Elapsed: " << currTimerCount;
+    if (confirmedGrp == "20") {
+        if (currTimerCount == 20) {
+            sessionTimer->stop();
+            qInfo("End of 20 session.");
+            sessionTimer->disconnect();
+            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
+            currTimerCount = 0;
+        }
+    } else if (confirmedGrp == "45") {
+        if (currTimerCount == 45) {
+            sessionTimer->stop();
+            qInfo("End of 45 session");
+            sessionTimer->disconnect();
+            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
+            currTimerCount = 0;
+        }
+    } else if (confirmedGrp == "UD") {
+        if (currTimerCount == 10) {
+            sessionTimer->stop();
+            qInfo("End of user-designated session");
+            sessionTimer->disconnect();
+            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
+            currTimerCount = 0;
+        }
+    }
+}
