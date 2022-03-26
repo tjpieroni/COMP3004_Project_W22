@@ -31,7 +31,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer;
+    QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer, *sessionTimer;
     QVector<Group*> groupList;
     QVector<session*> sessionList;
     QVector<recording*> recordingList;
@@ -41,6 +41,8 @@ private:
     int currSelectedSess = -1;
     int currentIntensity = 1;
 
+    int currTimerCount = -1;
+    QString confirmedGrp = "";
 private slots:
     void startPowerTimer();
     void handlePowerButton();
@@ -56,5 +58,8 @@ private slots:
     void startdownIntensityTimer();
     void increaseIntensity();
     void decreaseIntensity();
+    void updateTimer();
+    void initTimer(QTimer*);
+    void beginSession();
 };
 #endif // MAINWINDOW_H
