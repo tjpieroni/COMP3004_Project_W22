@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     powerStatus = false;
     therapyInProgress = false;
     shuttingDown = false;
+    earClipsConnected = false;
+    earsWet = false;
 
     //setup timers to facilitate holding buttons achieving different functionality from clicking
     powerButtonTimer = new QTimer(this);
@@ -267,6 +269,11 @@ void MainWindow::decreaseIntensity(){
 */
 void MainWindow::beginSession() {
     qInfo("Beginning session!");
+    do {
+       connection = checkConnection()
+    }
+    while(connection == false);
+
     sessionTimer = new QTimer(this);
     initTimer(sessionTimer);
 }
@@ -316,5 +323,28 @@ void MainWindow::updateTimer() {
             //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
             currTimerCount = 0;
         }
+    }
+}
+
+/*
+ * Function: checkConnection()
+ * Input: none
+ * Purpose: check the connection between the device and the users ears depending on if the ear clips are connected and the ears are wet or not.
+ *
+*/
+bool MainWindow::checkConnection() {
+
+    if(earClipsConnected){
+        if(earsWet){
+            qInfo("Strong Connection.");
+        }
+        else{
+           qInfo("Okay Connection.");
+        }
+        return true;
+    }
+    else {
+        qInfo("Ear Clips not connected.");
+        return false;
     }
 }

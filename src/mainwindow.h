@@ -26,7 +26,6 @@ public:
     //Check connection when session is started, true = good connection false = no connection
     bool checkConnection();
     void init();
-private slots:
 
 
 private:
@@ -43,6 +42,8 @@ private:
 
     int currTimerCount = -1;
     QString confirmedGrp = "";
+
+    bool earClipsConnected, earsWet;
 private slots:
     void startPowerTimer();
     void handlePowerButton();
