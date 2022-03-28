@@ -24,14 +24,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     //Check connection when session is started, true = good connection false = no connection
-    bool checkConnection();
     void init();
-private slots:
 
 
 private:
     Ui::MainWindow *ui;
-    QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer, *sessionTimer;
+    QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer, *sessionTimer, *connectTestTimer;
     QVector<Group*> groupList;
     QVector<session*> sessionList;
     QVector<recording*> recordingList;
@@ -43,6 +41,8 @@ private:
 
     int currTimerCount = -1;
     QString confirmedGrp = "";
+
+    bool earClipsConnected, earsWet;
 private slots:
     void startPowerTimer();
     void handlePowerButton();
@@ -61,5 +61,6 @@ private slots:
     void updateTimer();
     void initTimer(QTimer*);
     void beginSession();
+    int checkConnection();
 };
 #endif // MAINWINDOW_H

@@ -29,15 +29,19 @@ MainWindow::MainWindow(QWidget *parent)
     powerStatus = false;
     therapyInProgress = false;
     shuttingDown = false;
+    earClipsConnected = false;
+    earsWet = false;
 
     //setup timers to facilitate holding buttons achieving different functionality from clicking
     powerButtonTimer = new QTimer(this);
     upIntensityTimer = new QTimer(this);
     downIntensityTimer = new QTimer(this);
+    connectTestTimer = new QTimer(this);
 
     connect(powerButtonTimer, SIGNAL(timeout()), this,SLOT(togglePower()));
     connect(upIntensityTimer, SIGNAL(timeout()), this,SLOT(increaseIntensity()));
     connect(downIntensityTimer, SIGNAL(timeout()), this,SLOT(decreaseIntensity()));
+    connect(connectTestTimer, SIGNAL(timeout()), this,SLOT(checkConnection()));
 
     //connect buttons to their respective slots
     connect(ui->powerBtn, SIGNAL(pressed()), this,SLOT(startPowerTimer()));
@@ -266,6 +270,11 @@ void MainWindow::decreaseIntensity(){
  *
 */
 void MainWindow::beginSession() {
+
+    if(checkConnection() == 3){
+        connectTestTimer->start(5000);
+        return;
+    }
     qInfo("Beginning session!");
     sessionTimer = new QTimer(this);
     initTimer(sessionTimer);
@@ -296,7 +305,7 @@ void MainWindow::updateTimer() {
         if (currTimerCount == 20) {
             sessionTimer->stop();
             qInfo("End of 20 session.");
-            sessionTimer->disconnect();
+            //sessionTimer->disconnect();
             //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
             currTimerCount = 0;
         }
@@ -304,7 +313,7 @@ void MainWindow::updateTimer() {
         if (currTimerCount == 45) {
             sessionTimer->stop();
             qInfo("End of 45 session");
-            sessionTimer->disconnect();
+            //sessionTimer->disconnect();
             //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
             currTimerCount = 0;
         }
@@ -312,9 +321,41 @@ void MainWindow::updateTimer() {
         if (currTimerCount == 10) {
             sessionTimer->stop();
             qInfo("End of user-designated session");
-            sessionTimer->disconnect();
+            //sessionTimer->disconnect();
             //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
             currTimerCount = 0;
         }
+    }
+}
+
+/*
+ * Function: checkConnection()
+ * Input: none
+ * Purpose: check the connection between the device and the users ears depending on if the ear clips are connected and the ears are wet or not.
+ *
+*/
+int MainWindow::checkConnection() {
+
+    if(earClipsConnected){
+        if(earsWet){
+            qInfo("Strong Connection.");
+            if(connectTestTimer->isActive()){
+                connectTestTimer->stop();
+                beginSession();
+            }
+            return 1;
+        }
+        else{
+           qInfo("Okay Connection.");
+           if(connectTestTimer->isActive()){
+               connectTestTimer->stop();
+               beginSession();
+           }
+           return 2;
+        }
+    }
+    else {
+        qInfo("No Connection");
+        return 3;
     }
 }
