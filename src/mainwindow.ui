@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>879</width>
-    <height>626</height>
+    <width>833</width>
+    <height>589</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>0</x>
+      <y>0</y>
       <width>831</width>
       <height>561</height>
      </rect>
@@ -604,51 +604,6 @@
       <string>Battery: </string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_18">
-     <property name="geometry">
-      <rect>
-       <x>580</x>
-       <y>60</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>earclips connected:</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="earclipsConnected">
-     <property name="geometry">
-      <rect>
-       <x>710</x>
-       <y>50</y>
-       <width>82</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>82</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>82</width>
-       <height>30</height>
-      </size>
-     </property>
-     <item>
-      <property name="text">
-       <string>FALSE</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>TRUE</string>
-      </property>
-     </item>
-    </widget>
     <widget class="QPushButton" name="saveBtn">
      <property name="geometry">
       <rect>
@@ -662,6 +617,64 @@
       <string>Save Treatment</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="DampenEars">
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>70</y>
+       <width>101</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Damp Ears</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ConnectEarclips">
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>100</y>
+       <width>101</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connect Earclips</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="EarclipsConnected">
+     <property name="geometry">
+      <rect>
+       <x>680</x>
+       <y>100</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(239, 41, 41);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="EarsDampened">
+     <property name="geometry">
+      <rect>
+       <x>680</x>
+       <y>70</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(239, 41, 41);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -669,7 +682,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>879</width>
+     <width>833</width>
      <height>22</height>
     </rect>
    </property>

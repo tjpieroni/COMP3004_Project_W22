@@ -1,9 +1,10 @@
 #include "group.h"
 
-Group::Group(QPushButton *btnParam, QString nameParam)
+Group::Group(QPushButton *btnParam, QString nameParam, int duration)
 {
     this->btn = btnParam;
     this->groupName = nameParam;
+    this->duration = duration;
 }
 
 QPushButton* Group::getBtnWidget() {return this->btn;}
