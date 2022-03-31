@@ -23,9 +23,16 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    //Check connection when session is started, true = good connection false = no connection
+    // initialize environment
     void init();
-
+    // end in progress session
+    void endSession();
+    // cycle through available groups
+    void selectGroup();
+    // begin selected session after connection verification
+    void beginSession();
+    // reset device to appearance when powered off
+    void resetAppearance();
 
 private:
     Ui::MainWindow *ui;
@@ -34,21 +41,19 @@ private:
     QVector<session*> sessionList;
     QVector<recording*> recordingList;
     dbManager *Database;
-    bool powerStatus,therapyInProgress,shuttingDown;
+    bool powerStatus = false,therapyInProgress = false;
     int currSelectedGrp = -1;
     int currSelectedSess = -1;
-    int currentIntensity = 1;
+    int currentIntensity = 0;
 
-    int currTimerCount = -1;
+    int currTimerCount = 0;
     QString confirmedGrp = "";
 
-    bool earClipsConnected, earsWet;
+    bool earClipsConnected = false, earsWet = false;
 private slots:
     void startPowerTimer();
     void handlePowerButton();
     void togglePower();
-    void endSession();
-    void selectGroup();
     void confirmTreatment();
     void saveTreatment();
 
@@ -59,8 +64,10 @@ private slots:
     void increaseIntensity();
     void decreaseIntensity();
     void updateTimer();
-    void initTimer(QTimer*);
-    void beginSession();
-    int checkConnection();
+
+    void checkConnection();
+
+    void connectEarclips();
+    void dampenEar();
 };
 #endif // MAINWINDOW_H

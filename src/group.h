@@ -9,7 +9,7 @@
 class Group
 {
 public:
-    Group(QPushButton*, QString);
+    Group(QPushButton*, QString, int);
     QPushButton* getBtnWidget();
     QString getName();
     int getDuration();

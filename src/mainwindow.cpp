@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -25,23 +25,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->SessionType4->setEnabled(false);
     ui->SessionType4->setStyleSheet("QPushButton {border: none}");
 
-    //device starts powered off and not in a session.
-    powerStatus = false;
-    therapyInProgress = false;
-    shuttingDown = false;
-    earClipsConnected = false;
-    earsWet = false;
-
     //setup timers to facilitate holding buttons achieving different functionality from clicking
     powerButtonTimer = new QTimer(this);
     upIntensityTimer = new QTimer(this);
     downIntensityTimer = new QTimer(this);
     connectTestTimer = new QTimer(this);
+    sessionTimer = new QTimer(this);
 
     connect(powerButtonTimer, SIGNAL(timeout()), this,SLOT(togglePower()));
     connect(upIntensityTimer, SIGNAL(timeout()), this,SLOT(increaseIntensity()));
     connect(downIntensityTimer, SIGNAL(timeout()), this,SLOT(decreaseIntensity()));
     connect(connectTestTimer, SIGNAL(timeout()), this,SLOT(checkConnection()));
+    connect(sessionTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
 
     //connect buttons to their respective slots
     connect(ui->powerBtn, SIGNAL(pressed()), this,SLOT(startPowerTimer()));
@@ -52,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->downBtn,SIGNAL(released()),this,SLOT(selectDownSession()));
     connect(ui->checkBtn, SIGNAL(clicked()), this, SLOT(confirmTreatment()));
     connect(ui->saveBtn, SIGNAL(clicked()), this, SLOT(saveTreatment()));
+    connect(ui->DampenEars, SIGNAL(clicked()),this,SLOT(dampenEar()));
+    connect(ui->ConnectEarclips, SIGNAL(clicked()),this,SLOT(connectEarclips()));
 
     //block all buttons except the power button
     ui->checkBtn->blockSignals(true);
@@ -66,9 +63,9 @@ MainWindow::~MainWindow(){
 
 void MainWindow::init() {
     Database = new dbManager();
-    Group* twentyGrp = new Group(ui->TwentySession, "20");
-    Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "45");
-    Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "UD");
+    Group* twentyGrp = new Group(ui->TwentySession, "20", 20);
+    Group* fortyFiveGrp = new Group(ui->FortyFiveSession, "45", 45);
+    Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "UD", 10);
 
     //can change the name of these variables when we decide on the sessions we'll do
     session* one = new session(ui->SessionType1, "Session Type 1");
@@ -76,15 +73,9 @@ void MainWindow::init() {
     session* three = new session(ui->SessionType3,  "Session Type 3");
     session* four = new session(ui->SessionType4,  "Session Type 4");
 
-    groupList.append(twentyGrp);
-    groupList.append(fortyFiveGrp);
-    groupList.append(userDesignatedGrp);
-
-    sessionList.append(one);
-    sessionList.append(two);
-    sessionList.append(three);
-    sessionList.append(four);
-
+    // initialize MainWindow QVectors
+    groupList = {twentyGrp,fortyFiveGrp,userDesignatedGrp};
+    sessionList = {one,two,three,four};
     recordingList = Database->retrieveRecordings();
 }
 
@@ -92,17 +83,20 @@ void MainWindow::startPowerTimer(){
     powerButtonTimer->start(3000);
 }
 
+void MainWindow::resetAppearance(){
+    groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: none}");
+    sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+    currSelectedGrp = -1;
+    currSelectedSess = -1;
+}
+
 // turn on and off the power of the device, block/unblock signals from appropriate buttons
 void MainWindow::togglePower(){
     powerButtonTimer->stop();
     if(powerStatus){
         qInfo("Recieved POWER OFF signal");
-        //if power off is called during a session, end the session (TODO: turn this into just a function call)
-        if(therapyInProgress){
-            shuttingDown = true;
-            endSession();
-        }
-        shuttingDown = false;
+        endSession();
+        resetAppearance();
         powerStatus = false;
         ui->checkBtn->blockSignals(true);
         ui->downBtn->blockSignals(true);
@@ -132,13 +126,14 @@ void MainWindow::handlePowerButton(){
 }
 
 void MainWindow::endSession(){
-    if(powerButtonTimer->isActive() || shuttingDown){
-        powerButtonTimer->stop();
-        qInfo("Recieved END SESSION signal");
-        ui->checkBtn->blockSignals(false);
-        ui->saveBtn->blockSignals(true);
-        therapyInProgress = false;
-    }
+    qInfo("Recieved END SESSION signal");
+    powerButtonTimer->stop();
+    sessionTimer->stop();
+    currTimerCount = 0;
+    currentIntensity = 0;
+    ui->checkBtn->blockSignals(false);
+    ui->saveBtn->blockSignals(true);
+    therapyInProgress = false;
 }
 
 
@@ -168,65 +163,54 @@ void MainWindow::selectGroup(){
         }
         groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: 3px solid red}");
         qInfo() << "Current selected group: " << groupList.at(currSelectedGrp)->getName();
-
     }
-
 }
 
 void MainWindow::selectUpSession(){
-    if(upIntensityTimer->isActive() && !therapyInProgress){
+    if(upIntensityTimer->isActive()){
         upIntensityTimer->stop();
-        qInfo("Recieved SELECT UP SESSION signal");
-        if (currSelectedSess == -1) {
-            currSelectedSess = 0;
-            sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
-        } else if (currSelectedSess < sessionList.size()-1) {
-            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
-            currSelectedSess++;
-            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        if(!therapyInProgress){
+            qInfo("Recieved SELECT UP SESSION signal");
+            if (currSelectedSess == -1) {
+                currSelectedSess = 0;
+                sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+            } else if (currSelectedSess < sessionList.size()-1) {
+                sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+                currSelectedSess++;
+                sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+            }
         }
-
     }
 }
 
 void MainWindow::selectDownSession(){
-    if(downIntensityTimer->isActive() && !therapyInProgress){
+    if(downIntensityTimer->isActive()){
         downIntensityTimer->stop();
-        qInfo("Recieved SELECT DOWN SESSION signal");
-        if (currSelectedSess == -1) {
-            currSelectedSess = 0;
-            sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
-        } else if (currSelectedSess > 0) {
-            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
-            currSelectedSess--;
-            sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+        if(!therapyInProgress){
+            qInfo("Recieved SELECT DOWN SESSION signal");
+            if (currSelectedSess == -1) {
+                currSelectedSess = 0;
+                sessionList.at(0)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+            } else if (currSelectedSess > 0) {
+                sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+                currSelectedSess--;
+                sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: 3px solid red}");
+            }
         }
     }
 }
 
+// Confirm the selected Group and Session and if selection is valid, check the connection before starting the therapy.
 void MainWindow::confirmTreatment(){
     qInfo("Recieved CONFIRM TREATMENT signal");
     if (currSelectedGrp > -1 && currSelectedSess > -1) {
-        therapyInProgress = true;
         ui->checkBtn->blockSignals(true);
         ui->saveBtn->blockSignals(false);
         qInfo() << "Confirmed Group: " << groupList.at(currSelectedGrp)->getName();
         confirmedGrp = groupList.at(currSelectedGrp)->getName();
         qInfo() << "Confirmed Session: " << sessionList.at(currSelectedSess)->getName();
+        checkConnection();
 
-        if (groupList.at(currSelectedGrp)->getName() == "20") {
-            //twenty session
-            qInfo("Twenty session starting...");
-            beginSession();
-        } else if (groupList.at(currSelectedGrp)->getName() == "45") {
-            qInfo("Forty-Five session starting...");
-            beginSession();
-        } else if (groupList.at(currSelectedGrp)->getName() == "UD") {
-            qInfo("User-designated group starting...");
-            beginSession();
-        } else {
-            qInfo("Incalid group");
-        }
         //should probably reset style here
     } else {
         qInfo("You must select both a Group and Session in order to confirm treatment");
@@ -247,21 +231,25 @@ void MainWindow::saveTreatment(){
 }
 
 void MainWindow::startdownIntensityTimer(){
-    downIntensityTimer->start(2000);
+    downIntensityTimer->start(1500);
 }
 
 void MainWindow::startupIntensityTimer(){
-    upIntensityTimer->start(2000);
+    upIntensityTimer->start(1500);
 }
 
 void MainWindow::increaseIntensity(){
-    upIntensityTimer->stop();
-    qInfo("Recieved INCREASE INTENSITY signal");
+    if(currentIntensity < 8 && therapyInProgress){
+        qInfo("Recieved INCREASE INTENSITY signal");
+        currentIntensity++;
+    }
 }
 
 void MainWindow::decreaseIntensity(){
-    downIntensityTimer->stop();
-    qInfo("Recieved DECREASE INTENSITY signal");
+    if(currentIntensity > 0 && therapyInProgress){
+        qInfo("Recieved DECREASE INTENSITY signal");
+        currentIntensity--;
+    }
 }
 
 /*
@@ -270,25 +258,9 @@ void MainWindow::decreaseIntensity(){
  *
 */
 void MainWindow::beginSession() {
-
-    if(checkConnection() == 3){
-        connectTestTimer->start(5000);
-        return;
-    }
     qInfo("Beginning session!");
-    sessionTimer = new QTimer(this);
-    initTimer(sessionTimer);
-}
-/*Function: initTimer
- * Input: QTimer object pointer
- * Purpose: initialize the session count to 0, connect the timer to the updateTimer function and make it run every second
- *
- *
-*/
-void MainWindow::initTimer(QTimer *timer) {
-    currTimerCount = 0;
-    connect(timer, &QTimer::timeout, this, &MainWindow::updateTimer);
-    timer->start(1000);
+    therapyInProgress = true;
+    sessionTimer->start(1000);
 }
 
 /*
@@ -301,30 +273,9 @@ void MainWindow::initTimer(QTimer *timer) {
 void MainWindow::updateTimer() {
     currTimerCount++;
     qInfo() << "Elapsed: " << currTimerCount;
-    if (confirmedGrp == "20") {
-        if (currTimerCount == 20) {
-            sessionTimer->stop();
-            qInfo("End of 20 session.");
-            //sessionTimer->disconnect();
-            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
-            currTimerCount = 0;
-        }
-    } else if (confirmedGrp == "45") {
-        if (currTimerCount == 45) {
-            sessionTimer->stop();
-            qInfo("End of 45 session");
-            //sessionTimer->disconnect();
-            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
-            currTimerCount = 0;
-        }
-    } else if (confirmedGrp == "UD") {
-        if (currTimerCount == 10) {
-            sessionTimer->stop();
-            qInfo("End of user-designated session");
-            //sessionTimer->disconnect();
-            //Not sure if this is the right place to reset but gonna do it anyways for now, also not sure about disconnecting here
-            currTimerCount = 0;
-        }
+    if(currTimerCount == groupList.at(currSelectedGrp)->getDuration()){
+        qInfo("Session Ending...");
+        endSession();
     }
 }
 
@@ -334,28 +285,53 @@ void MainWindow::updateTimer() {
  * Purpose: check the connection between the device and the users ears depending on if the ear clips are connected and the ears are wet or not.
  *
 */
-int MainWindow::checkConnection() {
-
+void MainWindow::checkConnection() {
     if(earClipsConnected){
         if(earsWet){
             qInfo("Strong Connection.");
-            if(connectTestTimer->isActive()){
-                connectTestTimer->stop();
-                beginSession();
-            }
-            return 1;
+
+            connectTestTimer->stop();
+            beginSession();
         }
         else{
-           qInfo("Okay Connection.");
-           if(connectTestTimer->isActive()){
-               connectTestTimer->stop();
-               beginSession();
-           }
-           return 2;
+            qInfo("Okay Connection.");
+
+            connectTestTimer->stop();
+            beginSession();
         }
     }
     else {
         qInfo("No Connection");
-        return 3;
+        connectTestTimer->start(2000);
+    }
+}
+
+void MainWindow::connectEarclips(){
+    if(earClipsConnected){
+        earClipsConnected=false;
+        qInfo("Earclips Disconnected");
+        ui->EarclipsConnected->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+        if(therapyInProgress){
+            sessionTimer->stop();
+            checkConnection();
+        }
+    }
+    else{
+        qInfo("Earclips Connected");
+        earClipsConnected=true;
+        ui->EarclipsConnected->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+    }
+}
+
+void MainWindow::dampenEar(){
+    if(earsWet){
+        earsWet=false;
+        qInfo("Ears Dry");
+        ui->EarsDampened->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+    }
+    else{
+        qInfo("Ears Damp");
+        earsWet=true;
+        ui->EarsDampened->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
     }
 }
