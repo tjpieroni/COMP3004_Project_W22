@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include <QPixmap>
 #include <QDebug>
-
+#include <QLabel>
 #include "group.h"
 #include "session.h"
 #include "dbmanager.h"
@@ -33,6 +33,8 @@ public:
     void beginSession();
     // reset device to appearance when powered off
     void resetAppearance();
+    void displayOff_intensity();
+    void displayOn_intensity();
 
 private:
     Ui::MainWindow *ui;
@@ -40,6 +42,7 @@ private:
     QVector<Group*> groupList;
     QVector<session*> sessionList;
     QVector<recording*> recordingList;
+    QVector<QLabel*> intensityLevels;
     dbManager *Database;
     bool powerStatus = false,therapyInProgress = false;
     int currSelectedGrp = -1;

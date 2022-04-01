@@ -77,6 +77,7 @@ void MainWindow::init() {
     groupList = {twentyGrp,fortyFiveGrp,userDesignatedGrp};
     sessionList = {one,two,three,four};
     recordingList = Database->retrieveRecordings();
+    intensityLevels = {ui->lvl1, ui->lvl2, ui->lvl3, ui->lvl4, ui->lvl5, ui->lvl6, ui->lvl7, ui->lvl8};
 }
 
 void MainWindow::startPowerTimer(){
@@ -84,10 +85,15 @@ void MainWindow::startPowerTimer(){
 }
 
 void MainWindow::resetAppearance(){
-    groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: none}");
-    sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+    if (currSelectedGrp != -1){
+        groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: none}");
+    } if (currSelectedSess != -1) {
+        sessionList.at(currSelectedSess)->getBtnWidget()->setStyleSheet("QPushButton{border: none}");
+    }
     currSelectedGrp = -1;
     currSelectedSess = -1;
+    displayOff_intensity();
+    ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(255,255,255);}");
 }
 
 // turn on and off the power of the device, block/unblock signals from appropriate buttons
@@ -105,6 +111,7 @@ void MainWindow::togglePower(){
     else{
         qInfo("Recieved POWER ON signal");
         powerStatus = true;
+        displayOn_intensity();
         ui->checkBtn->blockSignals(false);
         ui->downBtn->blockSignals(false);
         ui->upBtn->blockSignals(false);
@@ -333,5 +340,28 @@ void MainWindow::dampenEar(){
         qInfo("Ears Damp");
         earsWet=true;
         ui->EarsDampened->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+    }
+}
+
+void MainWindow::displayOff_intensity() {
+    for (int i = 0; i < 8; i++) {
+        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(255, 255, 255);}");
+    }
+}
+
+void MainWindow::displayOn_intensity() {
+    //power indicator
+    ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+    //levels 1-3
+    for (int i = 0; i < 3; i++) {
+        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+    }
+    //levels 4-6
+    for (int i = 3; i < 6; i++) {
+        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
+    }
+    //levels 7 and 8
+    for (int i = 6; i < 8; i++) {
+        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
     }
 }
