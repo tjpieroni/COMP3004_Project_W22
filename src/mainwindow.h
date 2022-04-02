@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QDebug>
 #include <QLabel>
+#include <cmath>
 #include "group.h"
 #include "session.h"
 #include "dbmanager.h"

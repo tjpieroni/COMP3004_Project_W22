@@ -515,6 +515,19 @@
       <string/>
      </property>
     </widget>
+    <widget class="QLabel" name="remainingTimeLabel">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>40</y>
+       <width>221</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Remaining Session Time: </string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
