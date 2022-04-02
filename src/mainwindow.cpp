@@ -278,9 +278,24 @@ void MainWindow::beginSession() {
  *
 */
 void MainWindow::updateTimer() {
+//    qInfo() << "Elapsed: " << currTimerCount;
     currTimerCount++;
-    qInfo() << "Elapsed: " << currTimerCount;
+    int total = groupList.at(currSelectedGrp)->getDuration();
+    int remaining = total-currTimerCount;
+
+    //get seconds
+    int seconds = remaining % 60;
+    int temp = remaining-seconds;
+    //minutes
+    temp /=60;
+    int minutes = temp%60;
+    //get hours
+    int hours = temp-minutes;
+    QString timeRemaining = "Remaining Session Time: " + QString::number(hours) + ":" + QString::number(minutes) + ":" + QString::number(seconds);
+//    qInfo() << "Remaining: " << timeRemaining;
+    ui->remainingTimeLabel->setText(timeRemaining);
     if(currTimerCount == groupList.at(currSelectedGrp)->getDuration()){
+        ui->remainingTimeLabel->setText("Remaining Session Time: 0:0:0");
         qInfo("Session Ending...");
         endSession();
     }
