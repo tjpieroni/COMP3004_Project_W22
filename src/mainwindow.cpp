@@ -302,6 +302,28 @@ void MainWindow::updateTimer() {
 }
 
 /*
+ * Function: updateConnectionQuality()
+ * Input: none
+ * Purpose: Update the connection quality text on the UI.
+ *
+*/
+void MainWindow::updateConnectionQuality() {
+    QString connectionQuality = "Connection Quality: ";
+    if(earClipsConnected){
+        if(earsWet){
+            connectionQuality = connectionQuality + "Strong Connection";
+        }
+        else{
+            connectionQuality = connectionQuality + "Okay Connection";
+        }
+    }
+    else{
+        connectionQuality = connectionQuality + "No Connection";
+    }
+    ui->connectionQuality->setText(connectionQuality);
+}
+
+/*
  * Function: checkConnection()
  * Input: none
  * Purpose: check the connection between the device and the users ears depending on if the ear clips are connected and the ears are wet or not.
@@ -343,6 +365,7 @@ void MainWindow::connectEarclips(){
         earClipsConnected=true;
         ui->EarclipsConnected->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
     }
+    updateConnectionQuality();
 }
 
 void MainWindow::dampenEar(){
@@ -356,6 +379,7 @@ void MainWindow::dampenEar(){
         earsWet=true;
         ui->EarsDampened->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
     }
+    updateConnectionQuality();
 }
 
 void MainWindow::displayOff_intensity() {
