@@ -528,6 +528,19 @@
       <string>Remaining Session Time: </string>
      </property>
     </widget>
+    <widget class="QLabel" name="connectionQuality">
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>140</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connection Quality: No Connection</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

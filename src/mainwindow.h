@@ -68,6 +68,7 @@ private slots:
     void increaseIntensity();
     void decreaseIntensity();
     void updateTimer();
+    void updateConnectionQuality();
 
     void checkConnection();
 
