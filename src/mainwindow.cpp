@@ -330,22 +330,30 @@ void MainWindow::updateConnectionQuality() {
  *
 */
 void MainWindow::checkConnection() {
+    displayOff_intensity();
     if(earClipsConnected){
         if(earsWet){
             qInfo("Strong Connection.");
-
+            for (int i = 0; i < 3; i++) {
+                intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+            }
             connectTestTimer->stop();
             beginSession();
         }
         else{
             qInfo("Okay Connection.");
-
+            for (int i = 3; i < 6; i++) {
+                intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
+            }
             connectTestTimer->stop();
             beginSession();
         }
     }
     else {
         qInfo("No Connection");
+        for (int i = 6; i < 8; i++) {
+            intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+        }
         connectTestTimer->start(2000);
     }
 }
