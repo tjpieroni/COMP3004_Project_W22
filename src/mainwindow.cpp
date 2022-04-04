@@ -61,6 +61,14 @@ MainWindow::~MainWindow(){
     delete ui;
 }
 
+/*
+ * Function: init
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Initializes the database, the groups and session objects corresponding to the ui widgets, the QVectors
+ *          containing the newly-created groups and sessions, saved recordings and intensity level labels.
+ */
 void MainWindow::init() {
     Database = new dbManager();
     Group* twentyGrp = new Group(ui->TwentySession, "20", 20);
@@ -79,11 +87,24 @@ void MainWindow::init() {
     recordingList = Database->retrieveRecordings();
     intensityLevels = {ui->lvl1, ui->lvl2, ui->lvl3, ui->lvl4, ui->lvl5, ui->lvl6, ui->lvl7, ui->lvl8};
 }
-
+/*
+ * Function: startPowerTimer
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Starts the Timer that will manage events for the device power every 3 seconds
+ */
 void MainWindow::startPowerTimer(){
     powerButtonTimer->start(3000);
 }
 
+/*
+ * Function: resetAppearance
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Resets the machine by removing current group and session selections and resetting the UI colours
+ */
 void MainWindow::resetAppearance(){
     if (currSelectedGrp != -1){
         groupList.at(currSelectedGrp)->getBtnWidget()->setStyleSheet("QPushButton {border: none}");
@@ -95,8 +116,13 @@ void MainWindow::resetAppearance(){
     displayOff_intensity();
     ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(255,255,255);}");
 }
-
-// turn on and off the power of the device, block/unblock signals from appropriate buttons
+/*
+ * Function: togglePower
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Powers on/off the device and manages the blocking/unblocking of signals in the corresponding device state
+ */
 void MainWindow::togglePower(){
     powerButtonTimer->stop();
     if(powerStatus){
@@ -118,8 +144,13 @@ void MainWindow::togglePower(){
     }
 }
 
-/*slot handles all potention signals from power button, to either select a group, end an in progress session, or if the user has held the button for more than 3 seconds,
- * send no signal for the timer has already timed out.*/
+/*
+ * Function: handlePowerButton
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Handles all power button signals consisting of: group selection, ending an in-progress sesion or sending no signal if the timer has already timed out
+ */
 void MainWindow::handlePowerButton(){
     if(powerButtonTimer->isActive() && powerStatus){
         powerButtonTimer->stop();
@@ -131,7 +162,13 @@ void MainWindow::handlePowerButton(){
         }
     }
 }
-
+/*
+ * Function:  endSession
+ * In: None
+ * Out: None
+ * Return:  None
+ * Purpose: ends a session by stopping the timers for the power button and the session, resetting the intensity level and blocking button signals
+ */
 void MainWindow::endSession(){
     qInfo("Recieved END SESSION signal");
     powerButtonTimer->stop();
@@ -144,17 +181,14 @@ void MainWindow::endSession(){
 }
 
 
+
 /*
-    Function: selectGroup()
-    Purpose: Select a group
-    How it works:
-        if nothing is currently selected, it will set the currSelected variable to 0 and change the border
-        if something is selected
-            increment the current selected value
-            if it goes out of bounds, set it to 0
-            set the border colour
- *
-*/
+ * Function: selectGroup
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Handles group selection by cycling through the groupList vector
+ */
 void MainWindow::selectGroup(){
     qInfo("Recieved SELECT GROUP signal");
     if (currSelectedGrp == -1) {
@@ -173,6 +207,13 @@ void MainWindow::selectGroup(){
     }
 }
 
+/*
+ * Function: selectUpSession
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Handles session selection on the UI when the up intensity button is pressed by incrementing currSelectedSess
+ */
 void MainWindow::selectUpSession(){
     if(upIntensityTimer->isActive()){
         upIntensityTimer->stop();
@@ -190,6 +231,13 @@ void MainWindow::selectUpSession(){
     }
 }
 
+/*
+ * Function: selectDownSession
+ * In:  None
+ * Out: None
+ * Return: None
+ * Purpose:Handles session selection on the UI when the up intensity button is pressed by decrementing currSelectedSess
+ */
 void MainWindow::selectDownSession(){
     if(downIntensityTimer->isActive()){
         downIntensityTimer->stop();
@@ -207,7 +255,13 @@ void MainWindow::selectDownSession(){
     }
 }
 
-// Confirm the selected Group and Session and if selection is valid, check the connection before starting the therapy.
+/*
+ *Function: confirmTreatment
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Confirms the selected group and session type if the selection is valid and checks the connection before beginning the session.
+ */
 void MainWindow::confirmTreatment(){
     qInfo("Recieved CONFIRM TREATMENT signal");
     if (currSelectedGrp > -1 && currSelectedSess > -1) {
@@ -224,7 +278,13 @@ void MainWindow::confirmTreatment(){
     }
 
 }
-
+/*
+ * Function: saveTreatment
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Save a treatment by creating a new recording with she treatment information and inserting it into the database
+ */
 void MainWindow::saveTreatment(){
     qInfo("Recieved SAVE TREATMENT signal");
     recording *newRecording = new recording(recordingList.size(),currentIntensity,groupList.at(currSelectedGrp)->getDuration(),sessionList.at(currSelectedSess)->getName());
@@ -237,14 +297,34 @@ void MainWindow::saveTreatment(){
     }
 }
 
+/*
+ *Function: startdownIntensityTimer
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Starts the timer for the down intensity button at a 1.5 second interval
+ */
 void MainWindow::startdownIntensityTimer(){
     downIntensityTimer->start(1500);
 }
 
+/*
+ *Function: startupIntensityTimer
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Starts the timer for the up intensity button at a 1.5 second interval
+ */
 void MainWindow::startupIntensityTimer(){
     upIntensityTimer->start(1500);
 }
-
+/*
+ *Function: increaseIntensity
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Increases the intensity by one level up to a maximum of 8
+ */
 void MainWindow::increaseIntensity(){
     if(currentIntensity < 8 && therapyInProgress){
         qInfo("Recieved INCREASE INTENSITY signal");
@@ -252,6 +332,13 @@ void MainWindow::increaseIntensity(){
     }
 }
 
+/*
+ *Function: decreaseIntensity
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Decreases the intensity by one level down to a minimum of 0
+ */
 void MainWindow::decreaseIntensity(){
     if(currentIntensity > 0 && therapyInProgress){
         qInfo("Recieved DECREASE INTENSITY signal");
@@ -261,9 +348,11 @@ void MainWindow::decreaseIntensity(){
 
 /*
  *Function: beginSession
- * Input: initialize the session timer  and call initTimer with it
- *
-*/
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Increases the intensity by one level up to a maximum of 8
+ */
 void MainWindow::beginSession() {
     qInfo("Beginning session!");
     therapyInProgress = true;
@@ -277,6 +366,14 @@ void MainWindow::beginSession() {
  *          Cancel the timer when it reaches the confirmed group's corresponding time.
  *
 */
+/*
+ *Function: updateTimer
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Update the timer count every second with the help of its sessionTimer's initialization in initTimer
+ *          Cancels the timer when it reaches the confirmed group's correspondiong time. Displays the remaining time
+ */
 void MainWindow::updateTimer() {
 //    qInfo() << "Elapsed: " << currTimerCount;
     currTimerCount++;
@@ -302,11 +399,12 @@ void MainWindow::updateTimer() {
 }
 
 /*
- * Function: updateConnectionQuality()
- * Input: none
- * Purpose: Update the connection quality text on the UI.
- *
-*/
+ *Function: updateConnectionQuality
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Update the connection quality text on the UI
+ */
 void MainWindow::updateConnectionQuality() {
     QString connectionQuality = "Connection Quality: ";
     if(earClipsConnected){
@@ -324,11 +422,12 @@ void MainWindow::updateConnectionQuality() {
 }
 
 /*
- * Function: checkConnection()
- * Input: none
- * Purpose: check the connection between the device and the users ears depending on if the ear clips are connected and the ears are wet or not.
- *
-*/
+ *Function: checkConnection
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Checks the conenction beween the device and the user;s ears depending on whether or not the ear clips are connected and whether or not the ears are wet
+ */
 void MainWindow::checkConnection() {
     if(earClipsConnected){
         if(earsWet){
@@ -349,7 +448,13 @@ void MainWindow::checkConnection() {
         connectTestTimer->start(2000);
     }
 }
-
+/*
+ *Function: connectEarClips
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Connects the earclips and updates the UI
+ */
 void MainWindow::connectEarclips(){
     if(earClipsConnected){
         earClipsConnected=false;
@@ -368,6 +473,13 @@ void MainWindow::connectEarclips(){
     updateConnectionQuality();
 }
 
+/*
+ *Function: dampenEar
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Simulates the dampening of the ear by changing the earsWet variable
+ */
 void MainWindow::dampenEar(){
     if(earsWet){
         earsWet=false;
@@ -382,12 +494,25 @@ void MainWindow::dampenEar(){
     updateConnectionQuality();
 }
 
+/*
+ *Function: displayOff_intensity
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Resets the intensity UI colours to white
+ */
 void MainWindow::displayOff_intensity() {
     for (int i = 0; i < 8; i++) {
         intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(255, 255, 255);}");
     }
 }
-
+/*
+ *Function: displayOn_intensity
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Updates the UI intensity colours and the power indicator. Levels 1-3 are green, 4-6 are yellow and 7-8 are red
+ */
 void MainWindow::displayOn_intensity() {
     //power indicator
     ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");

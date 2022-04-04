@@ -1,7 +1,13 @@
 #include "dbmanager.h"
 
 const QString dbManager::DB_PATH = "/database/oasis.db";
-
+/*
+ * Function: dbManager
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: creates a new QSql database
+ */
 dbManager::dbManager()
 {
     oasisDB = QSqlDatabase::addDatabase("QSQLITE");
@@ -16,7 +22,13 @@ dbManager::dbManager()
     }
 }
 
-//initialize DB with recordings table
+/*
+ * Function: initDB
+ * In:  None
+ * Out: None
+ * Return: a boolean
+ * Purpose: Initializes the database with recordings table and returns whether or not the operation was successful
+ */
 bool dbManager::initDB(){
     oasisDB.transaction();
 
@@ -27,6 +39,13 @@ bool dbManager::initDB(){
     return oasisDB.commit();
 }
 
+/*
+ * Function: retrieveRecordings
+ * In: None
+ * Out: None
+ * Return: A QVector containing recording pointers
+ * Purpose: To retrieve recordings from the database
+ */
 QVector<recording*> dbManager::retrieveRecordings(){
     oasisDB.transaction();
     QSqlQuery query;
@@ -38,6 +57,13 @@ QVector<recording*> dbManager::retrieveRecordings(){
     return recordings;
 }
 
+/*
+ * Function: insertRecording
+ * In: a recording pointer
+ * Out: None
+ * Return: a boolean value
+ * Purpose: Inserts a new recording to the database and returns whether or not the operation was successful
+ */
 bool dbManager::insertRecording(recording *newRecording){
     oasisDB.transaction();
     QSqlQuery query;
