@@ -175,6 +175,7 @@ void MainWindow::endSession(){
     sessionTimer->stop();
     currTimerCount = 0;
     currentIntensity = 0;
+    ui->remainingTimeLabel->setText("Remaining Session Time: 0:0:0");
     ui->checkBtn->blockSignals(false);
     ui->saveBtn->blockSignals(true);
     therapyInProgress = false;

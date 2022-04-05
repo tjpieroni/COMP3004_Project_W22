@@ -404,28 +404,28 @@
       <item>
        <widget class="QPushButton" name="SessionType1">
         <property name="text">
-         <string>type 1</string>
+         <string>MET</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="SessionType2">
         <property name="text">
-         <string>type 2</string>
+         <string>Delta</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="SessionType3">
         <property name="text">
-         <string>type 3</string>
+         <string>Alpha</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="SessionType4">
         <property name="text">
-         <string>type 4</string>
+         <string>Theta</string>
         </property>
        </widget>
       </item>
@@ -525,7 +525,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Remaining Session Time: </string>
+      <string>Remaining Session Time: 0:0:0</string>
      </property>
     </widget>
     <widget class="QLabel" name="connectionQuality">
