@@ -34,8 +34,7 @@ public:
     void beginSession();
     // reset device to appearance when powered off
     void resetAppearance();
-    void displayOff_intensity();
-    void displayOn_intensity();
+    void displayIntensity(int);
 
 private:
     Ui::MainWindow *ui;
@@ -49,6 +48,7 @@ private:
     int currSelectedGrp = -1;
     int currSelectedSess = -1;
     int currentIntensity = 0;
+    int batteryLevel;
 
     int currTimerCount = 0;
     QString confirmedGrp = "";

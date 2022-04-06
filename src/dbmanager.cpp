@@ -35,6 +35,15 @@ bool dbManager::initDB(){
     QSqlQuery query;
 
     query.exec("CREATE TABLE IF NOT EXISTS recordings (recID INTEGER NOT NULL PRIMARY KEY, intLevel INTEGER NOT NULL, duration INTEGER NOT NULL, type TEXT NOT NULL);");
+    query.exec("CREATE TABLE IF NOT EXISTS power (powerStatus INTEGER NOT NULL);");
+
+    QSqlQuery powerQuery;
+    powerQuery.exec("SELECT powerStatus from power");
+    if(!powerQuery.next()){
+        qInfo("No Power Stored");
+        powerQuery.exec("INSERT OR REPLACE INTO power VALUES (100)");
+    }
+
 
     return oasisDB.commit();
 }
@@ -55,6 +64,24 @@ QVector<recording*> dbManager::retrieveRecordings(){
         recordings.push_back(newRecording);
     }
     return recordings;
+}
+
+int dbManager::retrievePower(){
+    oasisDB.transaction();
+    QSqlQuery query;
+    query.exec("SELECT powerStatus FROM power;");
+    query.next();
+    return query.value(0).toInt();
+
+}
+
+bool dbManager::updatePower(int newPower){
+    oasisDB.transaction();
+    QSqlQuery query;
+    query.exec("DELETE FROM power");
+    query.prepare("INSERT INTO power (powerStatus) VALUES (:newPower);");
+    query.bindValue(":newPower", newPower);
+    return oasisDB.commit();
 }
 
 /*
