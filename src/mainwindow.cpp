@@ -76,16 +76,17 @@ void MainWindow::init() {
     Group* userDesignatedGrp = new Group(ui->UserDesignatedSession, "UD", 10);
 
     //can change the name of these variables when we decide on the sessions we'll do
-    session* one = new session(ui->SessionType1, "Session Type 1");
-    session* two = new session(ui->SessionType2, "Session Type 2");
-    session* three = new session(ui->SessionType3,  "Session Type 3");
-    session* four = new session(ui->SessionType4,  "Session Type 4");
+    session* one = new session(ui->SessionType1, "MET");
+    session* two = new session(ui->SessionType2, "DELTA");
+    session* three = new session(ui->SessionType3,  "ALPHA");
+    session* four = new session(ui->SessionType4,  "BETA");
 
     // initialize MainWindow QVectors
     groupList = {twentyGrp,fortyFiveGrp,userDesignatedGrp};
     sessionList = {one,two,three,four};
     recordingList = Database->retrieveRecordings();
     intensityLevels = {ui->lvl1, ui->lvl2, ui->lvl3, ui->lvl4, ui->lvl5, ui->lvl6, ui->lvl7, ui->lvl8};
+    batteryLevel = Database->retrievePower();
 }
 /*
  * Function: startPowerTimer
@@ -113,7 +114,8 @@ void MainWindow::resetAppearance(){
     }
     currSelectedGrp = -1;
     currSelectedSess = -1;
-    displayOff_intensity();
+    //displayOff_intensity();
+    displayIntensity(0);
     ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(255,255,255);}");
 }
 /*
@@ -133,11 +135,16 @@ void MainWindow::togglePower(){
         ui->checkBtn->blockSignals(true);
         ui->downBtn->blockSignals(true);
         ui->upBtn->blockSignals(true);
+        if(Database->updatePower(batteryLevel)){
+            qInfo("Battery Level Saved");
+        }
     }
     else{
         qInfo("Recieved POWER ON signal");
         powerStatus = true;
-        displayOn_intensity();
+        //displayOn_intensity();
+        displayIntensity(8);
+
         ui->checkBtn->blockSignals(false);
         ui->downBtn->blockSignals(false);
         ui->upBtn->blockSignals(false);
@@ -175,6 +182,8 @@ void MainWindow::endSession(){
     sessionTimer->stop();
     currTimerCount = 0;
     currentIntensity = 0;
+    //displayOff_intensity();
+    displayIntensity(0);
     ui->remainingTimeLabel->setText("Remaining Session Time: 0:0:0");
     ui->checkBtn->blockSignals(false);
     ui->saveBtn->blockSignals(true);
@@ -330,6 +339,15 @@ void MainWindow::increaseIntensity(){
     if(currentIntensity < 8 && therapyInProgress){
         qInfo("Recieved INCREASE INTENSITY signal");
         currentIntensity++;
+        if(currentIntensity<=3){
+            intensityLevels.at(currentIntensity-1)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+        }
+        else if(currentIntensity<=6){
+            intensityLevels.at(currentIntensity-1)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
+        }
+        else{
+            intensityLevels.at(currentIntensity-1)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+        }
     }
 }
 
@@ -343,6 +361,7 @@ void MainWindow::increaseIntensity(){
 void MainWindow::decreaseIntensity(){
     if(currentIntensity > 0 && therapyInProgress){
         qInfo("Recieved DECREASE INTENSITY signal");
+        intensityLevels.at(currentIntensity-1)->setStyleSheet("QLabel {background-color: rgb(255, 255, 255);}");
         currentIntensity--;
     }
 }
@@ -357,7 +376,10 @@ void MainWindow::decreaseIntensity(){
 void MainWindow::beginSession() {
     qInfo("Beginning session!");
     therapyInProgress = true;
+    //displayOff_intensity();
+    displayIntensity(0);
     sessionTimer->start(1000);
+
 }
 
 /*
@@ -376,7 +398,6 @@ void MainWindow::beginSession() {
  *          Cancels the timer when it reaches the confirmed group's correspondiong time. Displays the remaining time
  */
 void MainWindow::updateTimer() {
-//    qInfo() << "Elapsed: " << currTimerCount;
     currTimerCount++;
     int total = groupList.at(currSelectedGrp)->getDuration();
     int remaining = total-currTimerCount;
@@ -390,7 +411,6 @@ void MainWindow::updateTimer() {
     //get hours
     int hours = temp-minutes;
     QString timeRemaining = "Remaining Session Time: " + QString::number(hours) + ":" + QString::number(minutes) + ":" + QString::number(seconds);
-//    qInfo() << "Remaining: " << timeRemaining;
     ui->remainingTimeLabel->setText(timeRemaining);
     if(currTimerCount == groupList.at(currSelectedGrp)->getDuration()){
         ui->remainingTimeLabel->setText("Remaining Session Time: 0:0:0");
@@ -430,7 +450,8 @@ void MainWindow::updateConnectionQuality() {
  * Purpose: Checks the conenction beween the device and the user;s ears depending on whether or not the ear clips are connected and whether or not the ears are wet
  */
 void MainWindow::checkConnection() {
-    displayOff_intensity();
+    //displayOff_intensity();
+    displayIntensity(0);
     if(earClipsConnected){
         if(earsWet){
             qInfo("Strong Connection.");
@@ -504,37 +525,28 @@ void MainWindow::dampenEar(){
 }
 
 /*
- *Function: displayOff_intensity
+ *Function: displayIntensity
  * In: None
  * Out: None
  * Return: None
- * Purpose: Resets the intensity UI colours to white
+ * Purpose: Updates the UI intensity colours as per a supplied int 0=OFF 8=ON
  */
-void MainWindow::displayOff_intensity() {
-    for (int i = 0; i < 8; i++) {
+void MainWindow::displayIntensity(int intensity){
+    int counter=0;
+    for(int i=counter;i<intensity;i++){
+        if(i<3){
+            intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+        }
+        else if(i<6){
+            intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
+        }
+        else{
+            intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+        }
+        counter++;
+    }
+    for(int i=counter; i<8;i++){
         intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(255, 255, 255);}");
-    }
-}
-/*
- *Function: displayOn_intensity
- * In: None
- * Out: None
- * Return: None
- * Purpose: Updates the UI intensity colours and the power indicator. Levels 1-3 are green, 4-6 are yellow and 7-8 are red
- */
-void MainWindow::displayOn_intensity() {
-    //power indicator
-    ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
-    //levels 1-3
-    for (int i = 0; i < 3; i++) {
-        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
-    }
-    //levels 4-6
-    for (int i = 3; i < 6; i++) {
-        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
-    }
-    //levels 7 and 8
-    for (int i = 6; i < 8; i++) {
-        intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+        counter++;
     }
 }
