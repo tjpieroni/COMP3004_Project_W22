@@ -49,12 +49,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->saveBtn, SIGNAL(clicked()), this, SLOT(saveTreatment()));
     connect(ui->DampenEars, SIGNAL(clicked()),this,SLOT(dampenEar()));
     connect(ui->ConnectEarclips, SIGNAL(clicked()),this,SLOT(connectEarclips()));
+    connect(ui->previousRecording, SIGNAL(clicked()),this,SLOT(previousRecording()));
+    connect(ui->nextRecording, SIGNAL(clicked()),this,SLOT(nextRecording()));
+
 
     //block all buttons except the power button
     ui->checkBtn->blockSignals(true);
     ui->downBtn->blockSignals(true);
     ui->upBtn->blockSignals(true);
     ui->saveBtn->blockSignals(true);
+    ui->previousRecording->blockSignals(true);
+    ui->nextRecording->blockSignals(true);
 }
 
 MainWindow::~MainWindow(){
@@ -135,6 +140,8 @@ void MainWindow::togglePower(){
         ui->checkBtn->blockSignals(true);
         ui->downBtn->blockSignals(true);
         ui->upBtn->blockSignals(true);
+        ui->previousRecording->blockSignals(true);
+        ui->nextRecording->blockSignals(true);
         if(Database->updatePower(batteryLevel)){
             qInfo("Battery Level Saved");
         }
@@ -144,10 +151,12 @@ void MainWindow::togglePower(){
         powerStatus = true;
         //displayOn_intensity();
         displayIntensity(8);
-
+        displayRecording(0);
         ui->checkBtn->blockSignals(false);
         ui->downBtn->blockSignals(false);
         ui->upBtn->blockSignals(false);
+        ui->previousRecording->blockSignals(false);
+        ui->nextRecording->blockSignals(false);
     }
 }
 
@@ -548,5 +557,58 @@ void MainWindow::displayIntensity(int intensity){
     for(int i=counter; i<8;i++){
         intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(255, 255, 255);}");
         counter++;
+    }
+}
+
+/*
+ * Function: previousRecording
+ * In: None
+ * Out: currRecording
+ * Return: None
+ * Purpose: Handles the previous recording button being clicked from the UI by decreasing currRecording.
+ */
+void MainWindow::previousRecording(){
+    if(!therapyInProgress){
+        qInfo("Received PREVIOUS RECORDING signal.");
+        if(currRecording != 0){
+            currRecording = currRecording - 1;
+        }
+        displayRecording(currRecording);
+    }
+}
+
+/*
+ * Function: nextRecording
+ * In: None
+ * Out: currRecording
+ * Return: None
+ * Purpose: Handles the next recording button being clicked from the UI by increasing currRecording.
+ */
+void MainWindow::nextRecording(){
+    if(!therapyInProgress){
+        qInfo("Received NEXT RECORDING signal.");
+        if(currRecording < recordingList.size()){
+            currRecording = currRecording + 1;
+        }
+        displayRecording(currRecording);
+    }
+}
+
+/*
+ * Function: displayRecording
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Changes text on UI to display the current recording..
+ */
+void MainWindow::displayRecording(int r){
+    if(r < recordingList.size()){
+        QString duration = "Duration: " + QString::number(recordingList.at(r)->getDuration());
+        QString type = "Session Type: " + recordingList.at(r)->getType();
+        QString intensity = "Intensity: " + QString::number(recordingList.at(r)->getIntensity());
+
+        ui->recordingDuration->setText(duration);
+        ui->recordingSession->setText(type);
+        ui->recordingIntensity->setText(intensity);
     }
 }
