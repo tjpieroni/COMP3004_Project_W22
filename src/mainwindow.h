@@ -35,6 +35,7 @@ public:
     // reset device to appearance when powered off
     void resetAppearance();
     void displayIntensity(int);
+    void displayRecording(int);
 
 private:
     Ui::MainWindow *ui;
@@ -49,7 +50,7 @@ private:
     int currSelectedSess = -1;
     int currentIntensity = 0;
     int batteryLevel;
-
+    int currRecording = 0;
     int currTimerCount = 0;
     QString confirmedGrp = "";
 
@@ -68,10 +69,10 @@ private slots:
     void increaseIntensity();
     void decreaseIntensity();
     void updateTimer();
+    void nextRecording();
+    void previousRecording();
     void updateConnectionQuality();
-
     void checkConnection();
-
     void connectEarclips();
     void dampenEar();
 };
