@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QLabel>
 #include <cmath>
+#include <QVariant>
 #include "group.h"
 #include "session.h"
 #include "dbmanager.h"
@@ -30,8 +31,6 @@ public:
     void endSession();
     // cycle through available groups
     void selectGroup();
-    // begin selected session after connection verification
-    void beginSession();
     // reset device to appearance when powered off
     void resetAppearance();
     void displayIntensity(int);
@@ -39,7 +38,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QTimer *powerButtonTimer,*upIntensityTimer,*downIntensityTimer, *sessionTimer, *connectTestTimer;
+    QTimer *powerButtonTimer, *batteryTimer, *upIntensityTimer,*downIntensityTimer, *sessionTimer, *connectTestTimer, *beginSessionTimer, *displayBatteryTimer;
     QVector<Group*> groupList;
     QVector<session*> sessionList;
     QVector<recording*> recordingList;
@@ -49,7 +48,7 @@ private:
     int currSelectedGrp = -1;
     int currSelectedSess = -1;
     int currentIntensity = 0;
-    int batteryLevel;
+    float batteryLevel;
     int currRecording = 0;
     int currTimerCount = 0;
     QString confirmedGrp = "";
@@ -61,7 +60,7 @@ private slots:
     void togglePower();
     void confirmTreatment();
     void saveTreatment();
-
+    void beginSession();
     void selectUpSession();
     void selectDownSession();
     void startupIntensityTimer();
@@ -75,5 +74,9 @@ private slots:
     void checkConnection();
     void connectEarclips();
     void dampenEar();
+    void chargeBattery();
+
+    void iniBattery();
+    void updateBattery();
 };
 #endif // MAINWINDOW_H

@@ -18,8 +18,8 @@ public:
     bool initDB();
     QVector<recording*> retrieveRecordings();
     bool insertRecording(recording*);
-    int retrievePower();
-    bool updatePower(int);
+    float retrievePower();
+    bool updatePower(float);
 
 private:
     static const QString DB_PATH;
