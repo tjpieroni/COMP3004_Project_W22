@@ -27,16 +27,22 @@ MainWindow::MainWindow(QWidget *parent)
 
     //setup timers to facilitate holding buttons achieving different functionality from clicking
     powerButtonTimer = new QTimer(this);
+    batteryTimer = new QTimer(this);
     upIntensityTimer = new QTimer(this);
     downIntensityTimer = new QTimer(this);
     connectTestTimer = new QTimer(this);
     sessionTimer = new QTimer(this);
+    beginSessionTimer = new QTimer(this);
+    displayBatteryTimer = new QTimer(this);
 
     connect(powerButtonTimer, SIGNAL(timeout()), this,SLOT(togglePower()));
     connect(upIntensityTimer, SIGNAL(timeout()), this,SLOT(increaseIntensity()));
     connect(downIntensityTimer, SIGNAL(timeout()), this,SLOT(decreaseIntensity()));
     connect(connectTestTimer, SIGNAL(timeout()), this,SLOT(checkConnection()));
     connect(sessionTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
+    connect(batteryTimer, SIGNAL(timeout()), this,SLOT(updateBattery()));
+    connect(beginSessionTimer,SIGNAL(timeout()),this,SLOT(beginSession()));
+    connect(displayBatteryTimer,SIGNAL(timeout()),this,SLOT(iniBattery()));
 
     //connect buttons to their respective slots
     connect(ui->powerBtn, SIGNAL(pressed()), this,SLOT(startPowerTimer()));
@@ -51,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->ConnectEarclips, SIGNAL(clicked()),this,SLOT(connectEarclips()));
     connect(ui->previousRecording, SIGNAL(clicked()),this,SLOT(previousRecording()));
     connect(ui->nextRecording, SIGNAL(clicked()),this,SLOT(nextRecording()));
+    connect(ui->chargeBtn,SIGNAL(clicked()),this,SLOT(chargeBattery()));
 
 
     //block all buttons except the power button
@@ -90,6 +97,7 @@ void MainWindow::init() {
     groupList = {twentyGrp,fortyFiveGrp,userDesignatedGrp};
     sessionList = {one,two,three,four};
     recordingList = Database->retrieveRecordings();
+    qInfo()<<"Recordings: "<<recordingList.size();
     intensityLevels = {ui->lvl1, ui->lvl2, ui->lvl3, ui->lvl4, ui->lvl5, ui->lvl6, ui->lvl7, ui->lvl8};
     batteryLevel = Database->retrievePower();
 }
@@ -134,6 +142,8 @@ void MainWindow::togglePower(){
     powerButtonTimer->stop();
     if(powerStatus){
         qInfo("Recieved POWER OFF signal");
+        batteryTimer->stop();
+        displayBatteryTimer->stop();
         endSession();
         resetAppearance();
         powerStatus = false;
@@ -148,8 +158,14 @@ void MainWindow::togglePower(){
     }
     else{
         qInfo("Recieved POWER ON signal");
+        if(batteryLevel <= 0){
+            qInfo("Battery is dead: recharge");
+            return;
+        }
         powerStatus = true;
-        //displayOn_intensity();
+        ui->powerIndicator->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
+        batteryTimer->start(5000);
+        displayBatteryTimer->start(20000);
         displayIntensity(8);
         displayRecording(0);
         ui->checkBtn->blockSignals(false);
@@ -157,6 +173,7 @@ void MainWindow::togglePower(){
         ui->upBtn->blockSignals(false);
         ui->previousRecording->blockSignals(false);
         ui->nextRecording->blockSignals(false);
+        iniBattery();
     }
 }
 
@@ -383,6 +400,7 @@ void MainWindow::decreaseIntensity(){
  * Purpose: Increases the intensity by one level up to a maximum of 8
  */
 void MainWindow::beginSession() {
+    beginSessionTimer->stop();
     qInfo("Beginning session!");
     therapyInProgress = true;
     //displayOff_intensity();
@@ -468,7 +486,7 @@ void MainWindow::checkConnection() {
                 intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(138, 226, 52);}");
             }
             connectTestTimer->stop();
-            beginSession();
+            beginSessionTimer->start(3000);
         }
         else{
             qInfo("Okay Connection.");
@@ -476,7 +494,7 @@ void MainWindow::checkConnection() {
                 intensityLevels.at(i)->setStyleSheet("QLabel {background-color: rgb(252, 233, 79);}");
             }
             connectTestTimer->stop();
-            beginSession();
+            beginSessionTimer->start(3000);
         }
     }
     else {
@@ -612,3 +630,67 @@ void MainWindow::displayRecording(int r){
         ui->recordingIntensity->setText(intensity);
     }
 }
+
+/*
+ *Function: iniBattery
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Initializes the current battery level and displays on UI
+ */
+void MainWindow::iniBattery(){
+    qInfo("displaying battery");
+    displayIntensity(0);
+    if(batteryLevel > 2){
+        intensityLevels.at(batteryLevel-1)->setStyleSheet("QLabel {background-color: rgb(0, 0, 255);}");
+    }
+    else{
+        intensityLevels.at(batteryLevel-1)->setStyleSheet("QLabel {background-color: rgb(239, 41, 41);}");
+    }
+    QTimer::singleShot(1000, [=](){
+        if(therapyInProgress){
+            displayIntensity(currentIntensity);
+        }
+        else if(powerStatus){
+            displayIntensity(8);
+        }
+    });
+}
+
+/*
+ *Function: updateBattery
+ * In: None
+ * Out: None
+ * Return: None
+ * Purpose: Updates the UI and current battery level based on length of therapy, intensity, and connection to skin
+ */
+void MainWindow::updateBattery(){
+    //do for loop to check for current battery level and blink it
+    //power on and power off stops/begins battery consumation,
+
+    if(powerStatus == true){
+       if(therapyInProgress == true){
+           batteryLevel = (batteryLevel - (currentIntensity * 0.1) - 0.01);
+           if (batteryLevel < 0){
+               batteryLevel = 0;
+               togglePower();
+               return;
+           }
+       }
+       else{
+           batteryLevel = (batteryLevel - 0.01);
+           if (batteryLevel < 0){
+               batteryLevel = 0;
+               togglePower();
+               return;
+           }
+       }
+    }
+    qDebug() << "Idle: " << batteryLevel ;
+    Database->updatePower(batteryLevel);
+}
+
+void MainWindow::chargeBattery(){
+    batteryLevel = 8;
+}
+
