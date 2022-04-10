@@ -16,6 +16,11 @@ Thomas Pieroni:
 - Merge Conflict Resolutions.
 
 Musa Taha:
+- Battery Power Decrease
+- Display Power Level
+- Battery Power Signals and slots
+- Shutting down at low power 
+- Battery Warning at low power
 
 Simon Han:
 - Created Base GUI
@@ -26,6 +31,12 @@ Simon Han:
 - Traceability Matrix
 
 Muhammed Moazzam:
+- Use Case Diagrams
+- Connection Test
+- Display Connection test results in GUI
+- Display connection Quality
+- UI for displaying stored Recordings
+- Functionality for displaying stored recordings
 
 File Organization:
 Submission will contain 2 folders, Documentation and src.
