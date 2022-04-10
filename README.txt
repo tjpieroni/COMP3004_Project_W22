@@ -18,6 +18,12 @@ Thomas Pieroni:
 Musa Taha:
 
 Simon Han:
+- Created Base GUI
+- Remaining Session Time
+- GUI reset when powered off 
+- Session Timer
+- Group and session selection
+- Traceability Matrix
 
 Muhammed Moazzam:
 
